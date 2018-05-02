@@ -4,9 +4,18 @@ class RetryException(Exception):
     This is a retryable error.
     """
     def __init__(self, *args, **kwargs):
-        super(RetryException, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if 'exc' in kwargs:
             self.exc = kwargs['exc']
+
+
+class LoggingError(Exception):
+    """
+    An exception that allows passing additional logging info.
+    """
+    def __init__(self, message, extra=None):
+        super().__init__(message)
+        self.extra = extra
 
 
 class ValidationError(Exception):

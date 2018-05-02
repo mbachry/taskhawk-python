@@ -12,7 +12,7 @@ except ImportError:
     db = None
 
 from taskhawk.conf import settings
-from taskhawk.exceptions import RetryException, ValidationError
+from taskhawk.exceptions import RetryException, LoggingError, ValidationError
 from taskhawk.models import Message
 from taskhawk import Priority
 
@@ -36,15 +36,6 @@ def _get_sqs_resource():
 def get_queue(queue_name: str):
     sqs = _get_sqs_resource()
     return sqs.get_queue_by_name(QueueName=queue_name)
-
-
-class LoggingError(Exception):
-    """
-    An exception that allows passing additional logging info.
-    """
-    def __init__(self, message, extra=None):
-        super(LoggingError, self).__init__(message)
-        self.extra = extra
 
 
 def log_received_message(message_body: dict) -> None:
