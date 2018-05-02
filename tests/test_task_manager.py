@@ -21,6 +21,29 @@ def test_task_decorator():
     assert 'tests.test_task_manager.f' in _ALL_TASKS
 
 
+def test_task_decorator_custom_name():
+    @task(name='foo')
+    def f():
+        pass
+
+    assert f.task.name == 'foo'
+    assert 'foo' in _ALL_TASKS
+
+
+def test_task_decorator_custom_name_conflict():
+    def make_tasks():
+        @task(name='foo')
+        def f():
+            pass
+
+        @task(name='foo')
+        def g():
+            pass
+
+    with pytest.raises(ConfigurationError):
+        make_tasks()
+
+
 def test_task_decorator_priority():
     @task(priority=Priority.high)
     def f():
