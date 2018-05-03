@@ -8,7 +8,8 @@ class RetryException(Exception):
 
 class LoggingException(RetryException):
     """
-    An exception that allows passing additional logging info.
+    An exception that allows passing additional logging info. `extra` must be a dict that will be passed to
+    `logging.exception` and can be used by a logging adaptor etc.
     """
     def __init__(self, message, extra=None):
         super().__init__(message)

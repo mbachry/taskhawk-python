@@ -143,9 +143,18 @@ def process_messages_for_lambda_consumer(lambda_event: dict) -> None:
 
         try:
             message_handler_lambda(record)
-        except Exception as e:
-            extra = (e.extra if isinstance(e, LoggingException) else None)
-            logger.exception('Exception while processing message', extra=extra)
+        except LoggingException as e:
+            # log with message and extra
+            logger.exception(str(e), extra=e.extra)
+            # let it bubble up so message ends up in DLQ
+            raise
+        except RetryException:
+            # Retry without logging exception
+            logger.info('Retrying due to exception')
+            # let it bubble up so message ends up in DLQ
+            raise
+        except Exception:
+            logger.exception(f'Exception while processing message from {queue_name}')
             # let it bubble up so message ends up in DLQ
             raise
 
