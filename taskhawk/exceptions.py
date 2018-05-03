@@ -6,7 +6,7 @@ class RetryException(Exception):
     pass
 
 
-class LoggingException(RetryException):
+class LoggingException(Exception):
     """
     An exception that allows passing additional logging info. `extra` must be a dict that will be passed to
     `logging.exception` and can be used by a logging adaptor etc.

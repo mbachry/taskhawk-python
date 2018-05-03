@@ -66,7 +66,22 @@ def message_handler(message_json: str, receipt: typing.Optional[str]) -> None:
 
     log_received_message(message_body)
 
-    message.call_task(receipt)
+    try:
+        message.call_task(receipt)
+    except LoggingException as e:
+        # log with message and extra
+        logger.exception(str(e), extra=e.extra)
+        # let it bubble up so message ends up in DLQ
+        raise
+    except RetryException:
+        # Retry without logging exception
+        logger.info('Retrying due to exception')
+        # let it bubble up so message ends up in DLQ
+        raise
+    except Exception:
+        logger.exception(f'Exception while processing message')
+        # let it bubble up so message ends up in DLQ
+        raise
 
 
 def message_handler_sqs(queue_message) -> None:
@@ -112,14 +127,8 @@ def fetch_and_process_messages(queue_name: str, queue, num_messages: int = 1, vi
 
         try:
             message_handler_sqs(queue_message)
-        except LoggingException as e:
-            # log with message and extra
-            logger.exception(str(e), extra=e.extra)
-        except RetryException:
-            # Retry without logging exception
-            logger.info('Retrying due to exception')
         except Exception:
-            logger.exception(f'Exception while processing message from {queue_name}')
+            pass
         else:
             try:
                 queue_message.delete()
@@ -141,22 +150,7 @@ def process_messages_for_lambda_consumer(lambda_event: dict) -> None:
     for record in lambda_event['Records']:
         settings.TASKHAWK_PRE_PROCESS_HOOK(sns_record=record)
 
-        try:
-            message_handler_lambda(record)
-        except LoggingException as e:
-            # log with message and extra
-            logger.exception(str(e), extra=e.extra)
-            # let it bubble up so message ends up in DLQ
-            raise
-        except RetryException:
-            # Retry without logging exception
-            logger.info('Retrying due to exception')
-            # let it bubble up so message ends up in DLQ
-            raise
-        except Exception:
-            logger.exception(f'Exception while processing message from {queue_name}')
-            # let it bubble up so message ends up in DLQ
-            raise
+        message_handler_lambda(record)
 
 
 def _close_database():
