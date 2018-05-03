@@ -127,13 +127,13 @@ def fetch_and_process_messages(queue_name: str, queue, num_messages: int = 1, vi
 
         try:
             message_handler_sqs(queue_message)
-        except Exception:
-            pass
-        else:
             try:
                 queue_message.delete()
             except Exception:
                 logger.exception(f'Exception while deleting message from {queue_name}')
+        except Exception:
+            # already logged in message_handler
+            pass
 
 
 def process_messages_for_lambda_consumer(lambda_event: dict) -> None:
