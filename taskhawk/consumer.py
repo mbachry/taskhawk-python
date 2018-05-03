@@ -45,7 +45,7 @@ def log_received_message(message_body: dict) -> None:
 
 
 def log_invalid_message(message_json: str) -> None:
-    logger.debug('Received invalid message', extra={
+    logger.error('Received invalid message', extra={
         'message_json': message_json,
     })
 
