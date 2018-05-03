@@ -4,7 +4,7 @@ import uuid
 
 import pytest
 
-from taskhawk import consumer
+from taskhawk import consumer, LoggingException
 from taskhawk.conf import settings
 from taskhawk.consumer import (
     fetch_and_process_messages, _load_and_validate_message, get_queue_name, message_handler,
@@ -135,6 +135,20 @@ class TestFetchAndProcessMessages:
             fetch_and_process_messages(queue_name, queue)
 
             logging_mock.assert_called_once()
+
+        mock_get_messages.return_value[0].delete.assert_not_called()
+
+    def test_special_handling_logging_error(self, mock_message_handler, mock_get_messages):
+        queue_name = 'my-queue'
+        queue = mock.MagicMock()
+
+        mock_get_messages.return_value = [mock.MagicMock()]
+        mock_message_handler.side_effect = LoggingException('foo', extra={'mickey': 'mouse'})
+
+        with mock.patch.object(consumer.logger, 'exception') as logging_mock:
+            fetch_and_process_messages(queue_name, queue)
+
+            logging_mock.assert_called_once_with('foo', extra={'mickey': 'mouse'})
 
         mock_get_messages.return_value[0].delete.assert_not_called()
 

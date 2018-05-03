@@ -3,13 +3,10 @@ class RetryException(Exception):
     Special exception that does not log an exception when it is received.
     This is a retryable error.
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if 'exc' in kwargs:
-            self.exc = kwargs['exc']
+    pass
 
 
-class LoggingError(Exception):
+class LoggingException(RetryException):
     """
     An exception that allows passing additional logging info.
     """

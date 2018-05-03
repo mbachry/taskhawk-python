@@ -12,7 +12,7 @@ except ImportError:
     db = None
 
 from taskhawk.conf import settings
-from taskhawk.exceptions import RetryException, LoggingError, ValidationError
+from taskhawk.exceptions import RetryException, LoggingException, ValidationError
 from taskhawk.models import Message
 from taskhawk import Priority
 
@@ -112,13 +112,14 @@ def fetch_and_process_messages(queue_name: str, queue, num_messages: int = 1, vi
 
         try:
             message_handler_sqs(queue_message)
-        except RetryException as e:
+        except LoggingException as e:
+            # log with message and extra
+            logger.exception(str(e), extra=e.extra)
+        except RetryException:
             # Retry without logging exception
-            extra = (e.extra if isinstance(e, LoggingError) else None)
-            logger.info('Retrying due to exception', extra=extra)
-        except Exception as e:
-            extra = (e.extra if isinstance(e, LoggingError) else None)
-            logger.exception(f'Exception while processing message from {queue_name}', extra=extra)
+            logger.info('Retrying due to exception')
+        except Exception:
+            logger.exception(f'Exception while processing message from {queue_name}')
         else:
             try:
                 queue_message.delete()
@@ -143,7 +144,7 @@ def process_messages_for_lambda_consumer(lambda_event: dict) -> None:
         try:
             message_handler_lambda(record)
         except Exception as e:
-            extra = (e.extra if isinstance(e, LoggingError) else None)
+            extra = (e.extra if isinstance(e, LoggingException) else None)
             logger.exception('Exception while processing message', extra=extra)
             # let it bubble up so message ends up in DLQ
             raise
