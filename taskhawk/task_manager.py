@@ -31,7 +31,8 @@ def task(*args, priority: Priority = Priority.default, name: typing.Optional[str
             raise ConfigurationError(f'Task named "{name}" already exists: {func.__module__}.{func.__name__}')
 
     def _decorator(fn: typing.Callable) -> typing.Callable:
-        fn.task = settings.TASKHAWK_TASK_CLASS(fn, priority, name)
+        task_name = name or f'{fn.__module__}.{fn.__name__}'
+        fn.task = settings.TASKHAWK_TASK_CLASS(fn, priority, task_name)
         fn.dispatch = fn.task.dispatch
         fn.with_headers = fn.task.with_headers
         fn.with_priority = fn.task.with_priority
@@ -119,8 +120,8 @@ class Task:
                                 .dispatch('example@email.com')
 
     """
-    def __init__(self, fn: typing.Callable, priority: Priority, name: typing.Optional[str] = None) -> None:
-        self._name = name or f'{fn.__module__}.{fn.__name__}'
+    def __init__(self, fn: typing.Callable, priority: Priority, name: str) -> None:
+        self._name = name
         self._fn = fn
         self._priority = priority
         signature = inspect.signature(fn)
