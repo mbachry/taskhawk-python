@@ -24,14 +24,13 @@ def task(*args, priority: Priority = Priority.default, name: typing.Optional[str
 
     Additional methods available on tasks are described by :class:`taskhawk.Task` class
     """
-    if name is not None:
-        existing_task = _ALL_TASKS.get(name)
-        if existing_task is not None:
-            func = existing_task.fn
-            raise ConfigurationError(f'Task named "{name}" already exists: {func.__module__}.{func.__name__}')
-
     def _decorator(fn: typing.Callable) -> typing.Callable:
         task_name = name or f'{fn.__module__}.{fn.__name__}'
+        existing_task = _ALL_TASKS.get(task_name)
+        if existing_task is not None:
+            func = existing_task.fn
+            raise ConfigurationError(f'Task named "{task_name}" already exists: {func.__module__}.{func.__name__}')
+
         fn.task = settings.TASKHAWK_TASK_CLASS(fn, priority, task_name)
         fn.dispatch = fn.task.dispatch
         fn.with_headers = fn.task.with_headers

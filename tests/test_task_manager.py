@@ -45,7 +45,7 @@ def test_task_decorator_custom_name_conflict():
 
 
 def test_task_decorator_priority():
-    @task(priority=Priority.high)
+    @task(priority=Priority.high, name='test_task_decorator_priority')
     def f():
         pass
 
@@ -53,7 +53,7 @@ def test_task_decorator_priority():
     assert callable(f.dispatch)
     assert callable(f.with_headers)
     assert callable(f.with_priority)
-    assert 'tests.test_task_manager.f' in _ALL_TASKS
+    assert 'test_task_decorator_priority' in _ALL_TASKS
 
 
 class CustomTask(Task):
@@ -63,7 +63,7 @@ class CustomTask(Task):
 def test_task_decorator_custom_task_class(settings):
     settings.TASKHAWK_TASK_CLASS = 'tests.test_task_manager.CustomTask'
 
-    @task
+    @task(name='test_task_decorator_custom_task_class')
     def f():
         pass
 
@@ -237,7 +237,7 @@ class TestTask:
     def test_call(self, message):
         _f = mock.MagicMock()
 
-        @task
+        @task(name='test_call')
         def f(to: str, subject: str, from_email: str=None):
             _f(to, subject, from_email=from_email)
 
@@ -249,7 +249,7 @@ class TestTask:
     def test_call_headers(self, message):
         _f = mock.MagicMock()
 
-        @task
+        @task(name='test_call_headers')
         def f(to: str, subject: str, from_email: str=None, headers=None):
             _f(to, subject, from_email=from_email, headers=headers)
 
@@ -261,7 +261,7 @@ class TestTask:
     def test_call_metadata(self, message):
         _f = mock.MagicMock()
 
-        @task
+        @task(name='test_call_metadata')
         def f(to: str, subject: str, metadata, from_email: str=None):
             _f(to, subject, metadata, from_email=from_email)
 
